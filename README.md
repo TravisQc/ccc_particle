@@ -53,6 +53,24 @@ npm run build
 npm run preview
 ```
 
+## 部署到 GitHub Pages
+
+项目已包含 GitHub Actions workflow：`.github/workflows/deploy.yml`。
+
+首次部署时，在 GitHub 仓库页面进入 `Settings` -> `Pages`，将 `Build and deployment` 的 `Source` 设为 `GitHub Actions`。之后推送到 `main` 分支会自动执行构建并发布到：
+
+```text
+https://TravisQc.github.io/ccc_particle/
+```
+
+GitHub Pages 使用仓库子路径访问，所以 workflow 会运行：
+
+```bash
+npm run build:github
+```
+
+这个脚本会用 `/ccc_particle/` 作为 Vite 的生产资源路径。
+
 ## 使用说明
 
 1. 打开编辑器后，可以直接基于默认烟花模板调整参数。
