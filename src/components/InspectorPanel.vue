@@ -100,12 +100,12 @@ defineExpose({
       'texture-color': state.useTextureColor,
       'drag-over': dragOver,
     }"
-    aria-label="参数调整"
+    aria-label="CocosCreator 粒子参数调整"
   >
     <header class="inspector-header">
       <div>
-        <h1>粒子编辑器</h1>
-        <p>CocosCreator plist / PNG</p>
+        <h1>CocosCreator 粒子编辑器</h1>
+        <p>Cocos Creator plist / PNG 实时预览导出</p>
       </div>
       <NButtonGroup class="header-actions" size="small">
         <NButton secondary type="default" title="导入 plist" @click="$emit('importPlist')">

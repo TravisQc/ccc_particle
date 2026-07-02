@@ -36,7 +36,7 @@ defineExpose({
 </script>
 
 <template>
-  <section class="stage-panel" aria-label="粒子预览">
+  <section class="stage-panel" aria-label="CocosCreator 粒子实时预览">
     <div class="tool-strip">
       <NTooltip trigger="hover" placement="bottom">
         <template #trigger>
@@ -105,7 +105,7 @@ defineExpose({
 
     <div class="status-bar">
       <span>Particles <strong>{{ particleCount }}</strong></span>
-      <span id="hint">发射器 · 实时预览</span>
+      <span id="hint">CocosCreator 粒子 · 实时预览</span>
     </div>
   </section>
 </template>
