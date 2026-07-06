@@ -165,6 +165,7 @@ defineExpose({
           </label>
         </div>
         <NumberField id="maxParticles" label="数量" :min="1" :max="2000" :step="1" v-model="state.maxParticles" />
+        <NumberField id="emissionRate" label="每秒发射" :min="0" :max="10000" :step="1" v-model="state.emissionRate" />
         <PairField id="life" variance-id="lifeVar" label="生命周期" :step="0.05" v-model="state.life" v-model:variance-value="state.lifeVar" />
         <PairField id="angle" variance-id="angleVar" label="发射角度" :step="1" v-model="state.angle" v-model:variance-value="state.angleVar" />
         <AxisField

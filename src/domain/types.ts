@@ -18,6 +18,7 @@ export interface ParticleState {
   duration: number;
   infinite: boolean;
   maxParticles: number;
+  emissionRate: number;
   life: number;
   lifeVar: number;
   angle: number;

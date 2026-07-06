@@ -45,6 +45,7 @@ export function createPlist(state: ParticleState): string {
     numberTag("blendFuncDestination", BLEND_MAP[state.blendDst], "integer"),
     numberTag("blendFuncSource", BLEND_MAP[state.blendSrc], "integer"),
     numberTag("duration", state.infinite ? -1 : state.duration),
+    numberTag("emissionRate", state.emissionRate),
     numberTag("emitterType", state.emitterType, "integer"),
     numberTag("finishColorAlpha", state.endAlpha),
     numberTag("finishColorBlue", component(finishColor, "b")),
@@ -147,6 +148,9 @@ export function importedPlistState(data: PlistDict, current: ParticleState): Par
     endColorVar === "#000000";
   const duration = read("duration", current.duration);
   const infinite = read("duration", -1) < 0;
+  const maxParticles = read("maxParticles", current.maxParticles);
+  const life = read("particleLifespan", current.life);
+  const emissionRate = read("emissionRate", maxParticles / Math.max(0.03, life));
 
   return {
     angle: read("angle", current.angle),
@@ -154,6 +158,7 @@ export function importedPlistState(data: PlistDict, current: ParticleState): Par
     blendDst: reverseBlend[data.blendFuncDestination] || current.blendDst,
     blendSrc: reverseBlend[data.blendFuncSource] || current.blendSrc,
     duration: duration < 0 ? current.duration : duration,
+    emissionRate,
     infinite,
     emitterType: String(read("emitterType", current.emitterType)) === "1" ? "1" : "0",
     useTextureColor,
@@ -164,12 +169,12 @@ export function importedPlistState(data: PlistDict, current: ParticleState): Par
     endSizeVar: read("finishParticleSizeVariance", current.endSizeVar),
     gravityX: read("gravityx", current.gravityX),
     gravityY: read("gravityy", current.gravityY),
-    maxParticles: read("maxParticles", current.maxParticles),
+    maxParticles,
     maxRadius: read("maxRadius", current.maxRadius),
     maxRadiusVar: read("maxRadiusVariance", current.maxRadiusVar),
     minRadius: read("minRadius", current.minRadius),
     minRadiusVar: read("minRadiusVariance", current.minRadiusVar),
-    life: read("particleLifespan", current.life),
+    life,
     lifeVar: read("particleLifespanVariance", current.lifeVar),
     radialAccelVar: read("radialAccelVariance", current.radialAccelVar),
     radialAccel: read("radialAcceleration", current.radialAccel),

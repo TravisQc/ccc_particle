@@ -306,24 +306,20 @@ export class ParticleEngine {
     return true;
   }
 
-  private smoothEmissionSpacing(): number {
-    const visualSize = Math.max(1, Number(this.state.startSize) + Math.abs(Number(this.state.startSizeVar || 0)) * 0.25);
-    return clamp(visualSize * 0.45, 4, 18);
-  }
-
   private emit(dt: number): void {
     if (!this.state.infinite && this.elapsed > Number(this.state.duration)) return;
-    const rate = Number(this.state.maxParticles) / Math.max(0.03, Number(this.state.life));
+    const emissionRate = Number(this.state.emissionRate);
+    const rate = Number.isFinite(emissionRate) ? Math.max(0, emissionRate) : 0;
     this.emitCarry += rate * dt;
-    const rateCount = Math.floor(this.emitCarry);
+    const requestedCount = Math.floor(this.emitCarry);
+    this.emitCarry -= requestedCount;
+
     const dx = this.emitter.x - this.lastEmitPosition.x;
     const dy = this.emitter.y - this.lastEmitPosition.y;
-    const distance = Math.hypot(dx, dy);
-    const trailCount = this.dragging && distance > 0 ? Math.ceil(distance / this.smoothEmissionSpacing()) : 0;
-    const slots = Number(this.state.maxParticles) - this.particles.length;
-    const count = Math.min(Math.max(rateCount, trailCount), slots);
+    const maxParticles = Number(this.state.maxParticles);
+    const slots = Math.max(0, (Number.isFinite(maxParticles) ? Math.floor(maxParticles) : 0) - this.particles.length);
+    const count = Math.min(requestedCount, slots);
 
-    this.emitCarry -= Math.min(rateCount, count);
     if (count <= 0) {
       this.lastEmitPosition.x = this.emitter.x;
       this.lastEmitPosition.y = this.emitter.y;
