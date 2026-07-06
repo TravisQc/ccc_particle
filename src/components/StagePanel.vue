@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { NButton, NIcon, NTooltip } from "naive-ui";
 import { Focus, Move, Pause, Play, RotateCcw } from "@lucide/vue";
 
@@ -17,7 +17,7 @@ const emit = defineEmits<{
   pointerUp: [event: PointerEvent];
 }>();
 
-const canvasRef = ref<HTMLCanvasElement | null>(null);
+const canvasRef = useTemplateRef<HTMLCanvasElement>("canvasRef");
 const pauseIcon = computed(() => (props.paused ? Play : Pause));
 const pauseLabel = computed(() => (props.paused ? "继续播放" : "暂停预览"));
 
@@ -27,6 +27,10 @@ function onPointerDown(event: PointerEvent): void {
 }
 
 function onPointerUp(event: PointerEvent): void {
+  const canvas = canvasRef.value;
+  if (canvas?.hasPointerCapture(event.pointerId)) {
+    canvas.releasePointerCapture(event.pointerId);
+  }
   emit("pointerUp", event);
 }
 

@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { darkTheme, NConfigProvider, NGlobalStyle } from "naive-ui";
 import type { GlobalThemeOverrides } from "naive-ui";
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, reactive, shallowRef, useTemplateRef, watch } from "vue";
 import InspectorPanel from "./components/InspectorPanel.vue";
 import StagePanel from "./components/StagePanel.vue";
 import { downloadBlob } from "./domain/download";
@@ -57,14 +57,14 @@ type InspectorExpose = InstanceType<typeof InspectorPanel> & {
 };
 
 const state = reactive<ParticleState>(createInitialState());
-const particleCount = ref("0 / 0");
-const textureSize = ref("64 x 64");
-const paused = ref(false);
+const particleCount = shallowRef("0 / 0");
+const textureSize = shallowRef("64 x 64");
+const paused = shallowRef(false);
 
-const stagePanelRef = ref<StageExpose | null>(null);
-const inspectorPanelRef = ref<InspectorExpose | null>(null);
-const textureInputRef = ref<HTMLInputElement | null>(null);
-const plistInputRef = ref<HTMLInputElement | null>(null);
+const stagePanelRef = useTemplateRef<StageExpose>("stagePanelRef");
+const inspectorPanelRef = useTemplateRef<InspectorExpose>("inspectorPanelRef");
+const textureInputRef = useTemplateRef<HTMLInputElement>("textureInputRef");
+const plistInputRef = useTemplateRef<HTMLInputElement>("plistInputRef");
 
 let engine: ParticleEngine | null = null;
 

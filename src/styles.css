@@ -234,12 +234,13 @@ select {
 
 .panel-section .n-collapse-item__header {
   min-height: 32px;
-  padding: 0 14px 0 18px;
+  padding: 0 14px 0 28px;
   border-bottom: 1px solid var(--line-strong);
   background: var(--panel-raised);
 }
 
 .panel-section .n-collapse-item__header-main {
+  padding-left: 12px;
   color: var(--accent);
   font-weight: 700;
 }

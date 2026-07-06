@@ -59,6 +59,7 @@ export class ParticleEngine {
   private lastEmitPosition: Point = { x: 0, y: 0 };
   private dragging = false;
   private frameId = 0;
+  private running = false;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -70,12 +71,16 @@ export class ParticleEngine {
   }
 
   start(): void {
+    if (this.running) return;
+    this.running = true;
     this.lastTime = performance.now();
     this.frameId = requestAnimationFrame(this.frame);
   }
 
   stop(): void {
+    this.running = false;
     if (this.frameId) cancelAnimationFrame(this.frameId);
+    this.frameId = 0;
   }
 
   setPaused(paused: boolean): void {
@@ -376,6 +381,8 @@ export class ParticleEngine {
   }
 
   private readonly frame = (now: number): void => {
+    if (!this.running) return;
+
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;
 

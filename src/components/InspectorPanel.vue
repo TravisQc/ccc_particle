@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { shallowRef, useTemplateRef } from "vue";
 import { NButton, NButtonGroup, NColorPicker, NIcon, NInput, NInputNumber, NSelect, NSwitch } from "naive-ui";
 import { Archive, Download, FileInput, FolderOpen, ImagePlus, Upload } from "@lucide/vue";
 import InspectorSection from "./InspectorSection.vue";
@@ -30,9 +30,9 @@ const emit = defineEmits<{
   textureDrop: [dataTransfer: DataTransfer];
 }>();
 
-const selectedPreset = ref("fireworks");
-const dragOver = ref(false);
-const textureCanvasRef = ref<HTMLCanvasElement | null>(null);
+const selectedPreset = shallowRef("fireworks");
+const dragOver = shallowRef(false);
+const textureCanvasRef = useTemplateRef<HTMLCanvasElement>("textureCanvasRef");
 const colorModes: ColorPickerMode[] = ["hex"];
 
 const positionTypeOptions: Array<{ value: PositionType; label: PositionType }> = [
@@ -125,9 +125,8 @@ defineExpose({
 
     <div class="inspector-body">
       <div class="field-row">
-        <label for="backgroundColor">场景背景色</label>
+        <label>场景背景色</label>
         <NColorPicker
-          id="backgroundColor"
           :value="state.backgroundColor"
           :modes="colorModes"
           :show-alpha="false"

@@ -16,6 +16,11 @@ function formatNumber(value: unknown): string {
   return `${Math.round(number * 100000) / 100000}`;
 }
 
+function parseFiniteNumber(value: unknown, fallback: number): number {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
 function component(hex: string, channel: "r" | "g" | "b"): number {
   return hexToRgb(hex)[channel] / 255;
 }
@@ -122,10 +127,12 @@ export function importedPlistState(data: PlistDict, current: ParticleState): Par
     Object.entries(BLEND_MAP).map(([key, value]) => [String(value), key as BlendFactor]),
   );
   const read = (key: string, fallback: number | string): number =>
-    data[key] === undefined ? Number(fallback) : Number(data[key]);
+    data[key] === undefined
+      ? parseFiniteNumber(fallback, 0)
+      : parseFiniteNumber(data[key], parseFiniteNumber(fallback, 0));
   const color = (r: string | undefined, g: string | undefined, b: string | undefined) => {
     const toHex = (value: string | undefined) =>
-      clamp(Math.round(Number(value || 0) * 255), 0, 255).toString(16).padStart(2, "0");
+      clamp(Math.round(parseFiniteNumber(value, 0) * 255), 0, 255).toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   };
 
@@ -146,7 +153,7 @@ export function importedPlistState(data: PlistDict, current: ParticleState): Par
     angleVar: read("angleVariance", current.angleVar),
     blendDst: reverseBlend[data.blendFuncDestination] || current.blendDst,
     blendSrc: reverseBlend[data.blendFuncSource] || current.blendSrc,
-    duration: !infinite && duration < 0 ? 0.1 : duration,
+    duration: duration < 0 ? current.duration : duration,
     infinite,
     emitterType: String(read("emitterType", current.emitterType)) === "1" ? "1" : "0",
     useTextureColor,
