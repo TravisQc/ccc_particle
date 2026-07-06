@@ -149,6 +149,10 @@ select {
   background: var(--panel-deep);
 }
 
+.inspector-header > div:first-child {
+  min-width: 0;
+}
+
 .inspector-header h1 {
   margin: 0;
   font-size: 16px;
@@ -162,8 +166,35 @@ select {
   font-size: 11px;
 }
 
-.header-actions {
+.header-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 0 auto;
+  min-width: 0;
+  color: var(--muted);
+}
+
+.language-switcher-icon {
+  flex: 0 0 auto;
+  font-size: 16px;
+}
+
+.language-switcher .n-select {
+  width: 112px;
+}
+
+.header-actions {
+  flex: 0 1 auto;
   min-width: 0;
 }
 
@@ -216,7 +247,7 @@ select {
 }
 
 .template-row {
-  grid-template-columns: 88px minmax(0, 1fr) 64px;
+  grid-template-columns: 88px minmax(0, 1fr) 76px;
   padding-bottom: 10px;
 }
 
@@ -507,8 +538,19 @@ select {
     flex-direction: column;
   }
 
-  .header-actions {
+  .header-tools {
+    justify-content: flex-start;
+    flex-wrap: wrap;
     width: 100%;
+  }
+
+  .language-switcher {
+    flex: 0 0 134px;
+  }
+
+  .header-actions {
+    flex: 1 1 216px;
+    width: auto;
   }
 
   .header-actions .n-button {

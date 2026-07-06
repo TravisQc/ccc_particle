@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NInputNumber } from "naive-ui";
+import { useI18n } from "vue-i18n";
 
 const props = withDefaults(
   defineProps<{
@@ -18,13 +19,14 @@ const props = withDefaults(
   }>(),
   {
     step: "1",
-    middleLabel: "浮动±",
+    middleLabel: "",
     className: "",
   },
 );
 
 const model = defineModel<number>({ required: true });
 const varianceModel = defineModel<number>("varianceValue", { required: true });
+const { t } = useI18n();
 
 function numberProp(value: number | string | undefined): number | undefined {
   if (value === undefined || value === "") return undefined;
@@ -38,6 +40,7 @@ const stepValue = computed(() => numberProp(props.step) || 1);
 const varianceMinValue = computed(() => numberProp(props.varianceMin));
 const varianceMaxValue = computed(() => numberProp(props.varianceMax));
 const varianceStepValue = computed(() => numberProp(props.varianceStep) || stepValue.value);
+const displayMiddleLabel = computed(() => props.middleLabel || t("fields.variance"));
 
 function updateValue(value: number | null): void {
   if (typeof value === "number" && Number.isFinite(value)) model.value = value;
@@ -62,7 +65,7 @@ function updateVarianceValue(value: number | null): void {
       :show-button="false"
       @update:value="updateValue"
     />
-    <span class="pair-middle">{{ middleLabel }}</span>
+    <span class="pair-middle">{{ displayMiddleLabel }}</span>
     <NInputNumber
       :id="varianceId"
       class="number-input"

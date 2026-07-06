@@ -2,6 +2,7 @@
 import { computed, useTemplateRef } from "vue";
 import { NButton, NIcon, NTooltip } from "naive-ui";
 import { Focus, Move, Pause, Play, RotateCcw } from "@lucide/vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   particleCount: string;
@@ -18,8 +19,9 @@ const emit = defineEmits<{
 }>();
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>("canvasRef");
+const { t } = useI18n();
 const pauseIcon = computed(() => (props.paused ? Play : Pause));
-const pauseLabel = computed(() => (props.paused ? "继续播放" : "暂停预览"));
+const pauseLabel = computed(() => (props.paused ? t("stage.resumePlayback") : t("stage.pausePreview")));
 
 function onPointerDown(event: PointerEvent): void {
   canvasRef.value?.setPointerCapture(event.pointerId);
@@ -40,39 +42,39 @@ defineExpose({
 </script>
 
 <template>
-  <section class="stage-panel" aria-label="CocosCreator 粒子实时预览">
+  <section class="stage-panel" :aria-label="t('stage.aria')">
     <div class="tool-strip">
       <NTooltip trigger="hover" placement="bottom">
         <template #trigger>
-          <NButton class="tool-button" type="primary" circle quaternary size="small" title="拖动画布" aria-label="拖动画布">
+          <NButton class="tool-button" type="primary" circle quaternary size="small" :title="t('stage.dragCanvas')" :aria-label="t('stage.dragCanvas')">
             <template #icon>
               <NIcon :component="Move" />
             </template>
           </NButton>
         </template>
-        拖动画布
+        {{ t("stage.dragCanvas") }}
       </NTooltip>
 
       <NTooltip trigger="hover" placement="bottom">
         <template #trigger>
-          <NButton class="tool-button" circle quaternary size="small" title="居中发射器" aria-label="居中发射器" @click="$emit('center')">
+          <NButton class="tool-button" circle quaternary size="small" :title="t('stage.centerEmitter')" :aria-label="t('stage.centerEmitter')" @click="$emit('center')">
             <template #icon>
               <NIcon :component="Focus" />
             </template>
           </NButton>
         </template>
-        居中发射器
+        {{ t("stage.centerEmitter") }}
       </NTooltip>
 
       <NTooltip trigger="hover" placement="bottom">
         <template #trigger>
-          <NButton class="tool-button" circle quaternary size="small" title="重置粒子" aria-label="重置粒子" @click="$emit('reset')">
+          <NButton class="tool-button" circle quaternary size="small" :title="t('stage.resetParticles')" :aria-label="t('stage.resetParticles')" @click="$emit('reset')">
             <template #icon>
               <NIcon :component="RotateCcw" />
             </template>
           </NButton>
         </template>
-        重置粒子
+        {{ t("stage.resetParticles") }}
       </NTooltip>
 
       <NTooltip trigger="hover" placement="bottom">
@@ -108,8 +110,8 @@ defineExpose({
     />
 
     <div class="status-bar">
-      <span>Particles <strong>{{ particleCount }}</strong></span>
-      <span id="hint">CocosCreator 粒子 · 实时预览</span>
+      <span>{{ t("stage.particles") }} <strong>{{ particleCount }}</strong></span>
+      <span id="hint">{{ t("stage.hint") }}</span>
     </div>
   </section>
 </template>

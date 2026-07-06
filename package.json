@@ -12,11 +12,13 @@
   "dependencies": {
     "@lucide/vue": "^1.23.0",
     "naive-ui": "^2.44.1",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-i18n": "^11.1.12"
   },
   "devDependencies": {
     "@emnapi/core": "1.11.1",
     "@emnapi/runtime": "1.11.1",
+    "@intlify/devtools-types": "^11.4.6",
     "@vitejs/plugin-vue": "latest",
     "katex": "^0.17.0",
     "typescript": "latest",

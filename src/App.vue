@@ -1,5 +1,5 @@
 <template>
-  <NConfigProvider :theme="darkTheme" :theme-overrides="themeOverrides">
+  <NConfigProvider :date-locale="naiveDateLocale" :locale="naiveLocale" :theme="darkTheme" :theme-overrides="themeOverrides">
     <NGlobalStyle />
     <main class="app-shell">
       <StagePanel
@@ -35,9 +35,10 @@
 </template>
 
 <script setup lang="ts">
-import { darkTheme, NConfigProvider, NGlobalStyle } from "naive-ui";
+import { darkTheme, dateEnUS, dateZhCN, enUS, NConfigProvider, NGlobalStyle, zhCN } from "naive-ui";
 import type { GlobalThemeOverrides } from "naive-ui";
-import { nextTick, onBeforeUnmount, onMounted, reactive, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, shallowRef, useTemplateRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import InspectorPanel from "./components/InspectorPanel.vue";
 import StagePanel from "./components/StagePanel.vue";
 import { downloadBlob } from "./domain/download";
@@ -60,6 +61,7 @@ const state = reactive<ParticleState>(createInitialState());
 const particleCount = shallowRef("0 / 0");
 const textureSize = shallowRef("64 x 64");
 const paused = shallowRef(false);
+const { locale, t } = useI18n();
 
 const stagePanelRef = useTemplateRef<StageExpose>("stagePanelRef");
 const inspectorPanelRef = useTemplateRef<InspectorExpose>("inspectorPanelRef");
@@ -68,7 +70,10 @@ const plistInputRef = useTemplateRef<HTMLInputElement>("plistInputRef");
 
 let engine: ParticleEngine | null = null;
 
-const presetOptions = [{ value: "fireworks", label: "烟花" }];
+const activeLocale = computed(() => (locale.value === "en-US" ? "en-US" : "zh-CN"));
+const naiveLocale = computed(() => (activeLocale.value === "zh-CN" ? zhCN : enUS));
+const naiveDateLocale = computed(() => (activeLocale.value === "zh-CN" ? dateZhCN : dateEnUS));
+const presetOptions = computed(() => [{ value: "fireworks", label: t("presets.fireworks") }]);
 const blendOptions = Object.keys(BLEND_MAP).map((value) => ({ value, label: value }));
 
 const themeOverrides: GlobalThemeOverrides = {
@@ -193,7 +198,7 @@ function readFileAsText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("Failed to read plist."));
+    reader.onerror = () => reject(reader.error || new Error(t("errors.readPlist")));
     reader.readAsText(file);
   });
 }

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { shallowRef, useTemplateRef } from "vue";
+import { computed, shallowRef, useTemplateRef } from "vue";
 import { NButton, NButtonGroup, NColorPicker, NIcon, NInput, NInputNumber, NSelect, NSwitch } from "naive-ui";
 import { Archive, Download, FileInput, FolderOpen, ImagePlus, Upload } from "@lucide/vue";
+import { useI18n } from "vue-i18n";
 import InspectorSection from "./InspectorSection.vue";
+import LanguageSwitcher from "./LanguageSwitcher.vue";
 import AxisField from "./fields/AxisField.vue";
 import ColorField from "./fields/ColorField.vue";
 import NumberField from "./fields/NumberField.vue";
@@ -33,6 +35,7 @@ const emit = defineEmits<{
 const selectedPreset = shallowRef("fireworks");
 const dragOver = shallowRef(false);
 const textureCanvasRef = useTemplateRef<HTMLCanvasElement>("textureCanvasRef");
+const { t } = useI18n();
 const colorModes: ColorPickerMode[] = ["hex"];
 
 const positionTypeOptions: Array<{ value: PositionType; label: PositionType }> = [
@@ -40,10 +43,10 @@ const positionTypeOptions: Array<{ value: PositionType; label: PositionType }> =
   { value: "RELATIVE", label: "RELATIVE" },
   { value: "GROUPED", label: "GROUPED" },
 ];
-const emitterTypeOptions: Array<{ value: EmitterType; label: string }> = [
-  { value: "0", label: "重力模式" },
-  { value: "1", label: "半径模式" },
-];
+const emitterTypeOptions = computed<Array<{ value: EmitterType; label: string }>>(() => [
+  { value: "0", label: t("fields.gravityMode") },
+  { value: "1", label: t("fields.radiusMode") },
+]);
 
 function stopDropEvent(event: DragEvent): void {
   event.preventDefault();
@@ -100,32 +103,35 @@ defineExpose({
       'texture-color': state.useTextureColor,
       'drag-over': dragOver,
     }"
-    aria-label="CocosCreator 粒子参数调整"
+    :aria-label="t('inspector.aria')"
   >
     <header class="inspector-header">
       <div>
-        <h1>CocosCreator 粒子编辑器</h1>
-        <p>Cocos Creator plist / PNG 实时预览导出</p>
+        <h1>{{ t("app.title") }}</h1>
+        <p>{{ t("app.subtitle") }}</p>
       </div>
-      <NButtonGroup class="header-actions" size="small">
-        <NButton secondary type="default" title="导入 plist" @click="$emit('importPlist')">
-          <template #icon>
-            <NIcon :component="FileInput" />
-          </template>
-          导入 plist
-        </NButton>
-        <NButton secondary type="default" title="导出参数" @click="$emit('exportPlist')">
-          <template #icon>
-            <NIcon :component="Download" />
-          </template>
-          导出参数
-        </NButton>
-      </NButtonGroup>
+      <div class="header-tools">
+        <LanguageSwitcher />
+        <NButtonGroup class="header-actions" size="small">
+          <NButton secondary type="default" :title="t('actions.importPlist')" @click="$emit('importPlist')">
+            <template #icon>
+              <NIcon :component="FileInput" />
+            </template>
+            {{ t("actions.importPlist") }}
+          </NButton>
+          <NButton secondary type="default" :title="t('actions.exportParams')" @click="$emit('exportPlist')">
+            <template #icon>
+              <NIcon :component="Download" />
+            </template>
+            {{ t("actions.exportParams") }}
+          </NButton>
+        </NButtonGroup>
+      </div>
     </header>
 
     <div class="inspector-body">
       <div class="field-row">
-        <label>场景背景色</label>
+        <label>{{ t("fields.backgroundColor") }}</label>
         <NColorPicker
           :value="state.backgroundColor"
           :modes="colorModes"
@@ -137,19 +143,19 @@ defineExpose({
       </div>
 
       <div class="field-row template-row">
-        <label for="presetSelect">粒子模板</label>
+        <label for="presetSelect">{{ t("fields.particlePreset") }}</label>
         <NSelect id="presetSelect" v-model:value="selectedPreset" :options="presets" size="small" />
         <NButton id="loadPreset" secondary type="primary" size="small" @click="$emit('loadPreset', selectedPreset)">
           <template #icon>
             <NIcon :component="Upload" />
           </template>
-          载入
+          {{ t("actions.load") }}
         </NButton>
       </div>
 
-      <InspectorSection title="基础">
+      <InspectorSection :title="t('inspector.sections.base')">
         <div class="field-row split">
-          <label for="duration">持续时间</label>
+          <label for="duration">{{ t("fields.duration") }}</label>
           <NInputNumber
             id="duration"
             class="number-input"
@@ -161,15 +167,15 @@ defineExpose({
           />
           <label class="switch-label">
             <NSwitch id="infinite" v-model:value="state.infinite" size="small" />
-            <span>永久</span>
+            <span>{{ t("fields.infinite") }}</span>
           </label>
         </div>
-        <NumberField id="maxParticles" label="数量" :min="1" :max="2000" :step="1" v-model="state.maxParticles" />
-        <NumberField id="emissionRate" label="每秒发射" :min="0" :max="10000" :step="1" v-model="state.emissionRate" />
-        <PairField id="life" variance-id="lifeVar" label="生命周期" :step="0.05" v-model="state.life" v-model:variance-value="state.lifeVar" />
-        <PairField id="angle" variance-id="angleVar" label="发射角度" :step="1" v-model="state.angle" v-model:variance-value="state.angleVar" />
+        <NumberField id="maxParticles" :label="t('fields.maxParticles')" :min="1" :max="2000" :step="1" v-model="state.maxParticles" />
+        <NumberField id="emissionRate" :label="t('fields.emissionRate')" :min="0" :max="10000" :step="1" v-model="state.emissionRate" />
+        <PairField id="life" variance-id="lifeVar" :label="t('fields.life')" :step="0.05" v-model="state.life" v-model:variance-value="state.lifeVar" />
+        <PairField id="angle" variance-id="angleVar" :label="t('fields.angle')" :step="1" v-model="state.angle" v-model:variance-value="state.angleVar" />
         <AxisField
-          label="发射区域"
+          :label="t('fields.source')"
           x-id="sourceW"
           y-id="sourceH"
           x-label="W"
@@ -177,18 +183,18 @@ defineExpose({
           v-model:x-value="state.sourceW"
           v-model:y-value="state.sourceH"
         />
-        <SelectField id="positionType" label="位置类型" :options="positionTypeOptions" v-model="state.positionType" />
+        <SelectField id="positionType" :label="t('fields.positionType')" :options="positionTypeOptions" v-model="state.positionType" />
       </InspectorSection>
 
-      <InspectorSection title="粒子模式">
-        <SelectField id="emitterType" label="模式" :options="emitterTypeOptions" v-model="state.emitterType" />
+      <InspectorSection :title="t('inspector.sections.particleMode')">
+        <SelectField id="emitterType" :label="t('fields.mode')" :options="emitterTypeOptions" v-model="state.emitterType" />
         <div data-mode="gravity">
-          <AxisField label="重力" x-id="gravityX" y-id="gravityY" :step="0.01" v-model:x-value="state.gravityX" v-model:y-value="state.gravityY" />
-          <PairField id="speed" variance-id="speedVar" label="发射速度" :step="1" v-model="state.speed" v-model:variance-value="state.speedVar" />
+          <AxisField :label="t('fields.gravity')" x-id="gravityX" y-id="gravityY" :step="0.01" v-model:x-value="state.gravityX" v-model:y-value="state.gravityY" />
+          <PairField id="speed" variance-id="speedVar" :label="t('fields.speed')" :step="1" v-model="state.speed" v-model:variance-value="state.speedVar" />
           <PairField
             id="radialAccel"
             variance-id="radialAccelVar"
-            label="径向加速"
+            :label="t('fields.radialAccel')"
             :step="1"
             v-model="state.radialAccel"
             v-model:variance-value="state.radialAccelVar"
@@ -196,19 +202,19 @@ defineExpose({
           <PairField
             id="tangentialAccel"
             variance-id="tangentialAccelVar"
-            label="切向加速"
+            :label="t('fields.tangentialAccel')"
             :step="1"
             v-model="state.tangentialAccel"
             v-model:variance-value="state.tangentialAccelVar"
           />
         </div>
         <div data-mode="radius">
-          <PairField id="maxRadius" variance-id="maxRadiusVar" label="开始半径" :step="1" v-model="state.maxRadius" v-model:variance-value="state.maxRadiusVar" />
-          <PairField id="minRadius" variance-id="minRadiusVar" label="结束半径" :step="1" v-model="state.minRadius" v-model:variance-value="state.minRadiusVar" />
+          <PairField id="maxRadius" variance-id="maxRadiusVar" :label="t('fields.startRadius')" :step="1" v-model="state.maxRadius" v-model:variance-value="state.maxRadiusVar" />
+          <PairField id="minRadius" variance-id="minRadiusVar" :label="t('fields.endRadius')" :step="1" v-model="state.minRadius" v-model:variance-value="state.minRadiusVar" />
           <PairField
             id="rotatePerSecond"
             variance-id="rotatePerSecondVar"
-            label="每秒旋转"
+            :label="t('fields.rotatePerSecond')"
             :step="1"
             v-model="state.rotatePerSecond"
             v-model:variance-value="state.rotatePerSecondVar"
@@ -216,23 +222,23 @@ defineExpose({
         </div>
       </InspectorSection>
 
-      <InspectorSection title="粒子颜色">
+      <InspectorSection :title="t('inspector.sections.particleColor')">
         <div class="color-grid">
           <label class="color-mode-row">
-            <span>纹理颜色</span>
+            <span>{{ t("fields.textureColor") }}</span>
             <span class="toggle-text">
               <NSwitch id="useTextureColor" v-model:value="state.useTextureColor" size="small" />
-              使用图片原色
+              {{ t("fields.useTextureColor") }}
             </span>
           </label>
-          <ColorField label="开始颜色" rgb-control v-model="state.startColor" />
-          <ColorField label="浮动±" rgb-control v-model="state.startColorVar" />
-          <ColorField label="结束颜色" rgb-control v-model="state.endColor" />
-          <ColorField label="浮动±" rgb-control v-model="state.endColorVar" />
+          <ColorField :label="t('fields.startColor')" rgb-control v-model="state.startColor" />
+          <ColorField :label="t('fields.variance')" rgb-control v-model="state.startColorVar" />
+          <ColorField :label="t('fields.endColor')" rgb-control v-model="state.endColor" />
+          <ColorField :label="t('fields.variance')" rgb-control v-model="state.endColorVar" />
           <PairField
             id="startAlpha"
             variance-id="endAlpha"
-            label="透明度"
+            :label="t('fields.alpha')"
             :min="0"
             :max="1"
             :variance-min="0"
@@ -246,28 +252,28 @@ defineExpose({
         </div>
       </InspectorSection>
 
-      <InspectorSection title="粒子纹理">
+      <InspectorSection :title="t('inspector.sections.particleTexture')">
         <div class="texture-panel" @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
-          <div class="texture-preview-wrap" aria-label="纹理预览">
+          <div class="texture-preview-wrap" :aria-label="t('fields.texturePreview')">
             <canvas id="texture-preview" ref="textureCanvasRef" width="96" height="96" />
             <span id="texture-size">{{ textureSize }}</span>
-            <span class="drop-hint">PNG / JPG / WEBP</span>
+            <span class="drop-hint">{{ t("fields.textureDropHint") }}</span>
           </div>
           <div class="texture-fields">
             <div class="field-row">
-              <label for="texturePath">path</label>
+              <label for="texturePath">{{ t("fields.texturePath") }}</label>
               <NInput id="texturePath" v-model:value="state.texturePath" size="small" />
-              <NButton id="chooseTexture" type="primary" secondary circle size="small" title="载入纹理" aria-label="载入纹理" @click="$emit('chooseTexture')">
+              <NButton id="chooseTexture" type="primary" secondary circle size="small" :title="t('actions.chooseTexture')" :aria-label="t('actions.chooseTexture')" @click="$emit('chooseTexture')">
                 <template #icon>
                   <NIcon :component="FolderOpen" />
                 </template>
               </NButton>
             </div>
-            <TextField id="textureName" label="name" :model-value="state.textureName" @update:model-value="setTextureName" />
+            <TextField id="textureName" :label="t('fields.textureName')" :model-value="state.textureName" @update:model-value="setTextureName" />
             <PairField
               id="startSize"
               variance-id="startSizeVar"
-              label="开始大小"
+              :label="t('fields.startSize')"
               :step="0.1"
               class-name="texture-size-row"
               v-model="state.startSize"
@@ -276,7 +282,7 @@ defineExpose({
             <PairField
               id="endSize"
               variance-id="endSizeVar"
-              label="结束大小"
+              :label="t('fields.endSize')"
               :step="0.1"
               class-name="texture-size-row"
               v-model="state.endSize"
@@ -286,37 +292,37 @@ defineExpose({
         </div>
       </InspectorSection>
 
-      <InspectorSection title="粒子自旋转角度">
-        <PairField id="rotationStart" variance-id="rotationStartVar" label="起始角度" :step="1" v-model="state.rotationStart" v-model:variance-value="state.rotationStartVar" />
-        <PairField id="rotationEnd" variance-id="rotationEndVar" label="结束角度" :step="1" v-model="state.rotationEnd" v-model:variance-value="state.rotationEndVar" />
+      <InspectorSection :title="t('inspector.sections.particleRotation')">
+        <PairField id="rotationStart" variance-id="rotationStartVar" :label="t('fields.rotationStart')" :step="1" v-model="state.rotationStart" v-model:variance-value="state.rotationStartVar" />
+        <PairField id="rotationEnd" variance-id="rotationEndVar" :label="t('fields.rotationEnd')" :step="1" v-model="state.rotationEnd" v-model:variance-value="state.rotationEndVar" />
       </InspectorSection>
 
-      <InspectorSection title="混合模式">
-        <SelectField id="blendSrc" label="src" :options="blendOptions" v-model="state.blendSrc" />
-        <SelectField id="blendDst" label="dst" :options="blendOptions" v-model="state.blendDst" />
+      <InspectorSection :title="t('inspector.sections.blendMode')">
+        <SelectField id="blendSrc" :label="t('fields.blendSrc')" :options="blendOptions" v-model="state.blendSrc" />
+        <SelectField id="blendDst" :label="t('fields.blendDst')" :options="blendOptions" v-model="state.blendDst" />
       </InspectorSection>
     </div>
 
     <footer class="export-bar">
-      <label for="saveName">保存名字</label>
+      <label for="saveName">{{ t("fields.saveName") }}</label>
       <NInput id="saveName" v-model:value="state.saveName" size="small" />
       <NButton secondary size="small" @click="$emit('exportPlist')">
         <template #icon>
           <NIcon :component="FileInput" />
         </template>
-        plist
+        {{ t("actions.exportPlist") }}
       </NButton>
       <NButton secondary size="small" @click="$emit('exportTexture')">
         <template #icon>
           <NIcon :component="ImagePlus" />
         </template>
-        PNG
+        {{ t("actions.exportTexture") }}
       </NButton>
       <NButton type="primary" size="small" @click="$emit('exportAll')">
         <template #icon>
           <NIcon :component="Archive" />
         </template>
-        全部
+        {{ t("actions.exportAll") }}
       </NButton>
     </footer>
   </aside>
