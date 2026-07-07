@@ -88,6 +88,14 @@ export const messages = {
     },
     presets: {
       fireworks: "烟花",
+      fire: "火焰",
+      smoke: "烟雾",
+      snow: "飘雪",
+      rain: "雨滴",
+      fountain: "喷泉",
+      magic: "魔法光点",
+      explosion: "爆炸",
+      spiral: "旋涡",
     },
     errors: {
       readPlist: "读取 plist 失败。",
@@ -182,6 +190,14 @@ export const messages = {
     },
     presets: {
       fireworks: "Fireworks",
+      fire: "Fire",
+      smoke: "Smoke",
+      snow: "Snow",
+      rain: "Rain",
+      fountain: "Fountain",
+      magic: "Magic Sparks",
+      explosion: "Explosion",
+      spiral: "Spiral",
     },
     errors: {
       readPlist: "Failed to read plist.",

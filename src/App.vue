@@ -44,7 +44,7 @@ import StagePanel from "./components/StagePanel.vue";
 import { downloadBlob } from "./domain/download";
 import { firstImageFile, textureFilesFromDrop } from "./domain/files";
 import { ParticleEngine } from "./domain/particle-engine";
-import { BLEND_MAP, PRESETS, createInitialState, type PresetName } from "./domain/presets";
+import { BLEND_MAP, PRESET_NAMES, PRESETS, createInitialState, type PresetName } from "./domain/presets";
 import { createPlist, importedPlistState, parsePlistDict } from "./domain/plist";
 import type { ParticleFile, ParticleState } from "./domain/types";
 import { makeZip, sanitizeFileName } from "./domain/zip";
@@ -73,7 +73,7 @@ let engine: ParticleEngine | null = null;
 const activeLocale = computed(() => (locale.value === "en-US" ? "en-US" : "zh-CN"));
 const naiveLocale = computed(() => (activeLocale.value === "zh-CN" ? zhCN : enUS));
 const naiveDateLocale = computed(() => (activeLocale.value === "zh-CN" ? dateZhCN : dateEnUS));
-const presetOptions = computed(() => [{ value: "fireworks", label: t("presets.fireworks") }]);
+const presetOptions = computed(() => PRESET_NAMES.map((value) => ({ value, label: t(`presets.${value}`) })));
 const blendOptions = Object.keys(BLEND_MAP).map((value) => ({ value, label: value }));
 
 const themeOverrides: GlobalThemeOverrides = {
