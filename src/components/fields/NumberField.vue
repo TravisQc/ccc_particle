@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NInputNumber } from "naive-ui";
+import { finiteNumberUpdater, numberProp } from "./field-utils";
 
 const props = withDefaults(
   defineProps<{
@@ -19,26 +20,18 @@ const props = withDefaults(
 
 const model = defineModel<number>({ required: true });
 
-function numberProp(value: number | string | undefined): number | undefined {
-  if (value === undefined || value === "") return undefined;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
 const minValue = computed(() => numberProp(props.min));
 const maxValue = computed(() => numberProp(props.max));
 const stepValue = computed(() => numberProp(props.step) || 1);
 
-function updateValue(value: number | null): void {
-  if (typeof value === "number" && Number.isFinite(value)) model.value = value;
-}
+const updateValue = finiteNumberUpdater((value) => (model.value = value));
 </script>
 
 <template>
   <div class="field-row" :class="className">
     <label :for="id">{{ label }}</label>
+    <!-- id 必须通过 input-props 落到真实 <input> 上，直接给组件 :id 只会落在包装 div，label 关联失效 -->
     <NInputNumber
-      :id="id"
       class="number-input"
       :value="model"
       :min="minValue"
@@ -46,6 +39,7 @@ function updateValue(value: number | null): void {
       :step="stepValue"
       size="small"
       :show-button="false"
+      :input-props="{ id, 'aria-label': label }"
       @update:value="updateValue"
     />
   </div>

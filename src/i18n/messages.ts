@@ -19,7 +19,6 @@ export const messages = {
     },
     actions: {
       importPlist: "导入 plist",
-      exportParams: "导出参数",
       load: "载入",
       chooseTexture: "载入纹理",
       exportPlist: "plist",
@@ -33,7 +32,7 @@ export const messages = {
       resetParticles: "重置粒子",
       pausePreview: "暂停预览",
       resumePlayback: "继续播放",
-      particles: "Particles",
+      particles: "粒子数",
       hint: "CocosCreator 粒子 · 实时预览",
     },
     inspector: {
@@ -76,8 +75,8 @@ export const messages = {
       alpha: "透明度",
       texturePreview: "纹理预览",
       textureDropHint: "PNG / JPG / WEBP",
-      texturePath: "path",
-      textureName: "name",
+      texturePath: "路径",
+      textureName: "名称",
       startSize: "开始大小",
       endSize: "结束大小",
       rotationStart: "起始角度",
@@ -121,7 +120,6 @@ export const messages = {
     },
     actions: {
       importPlist: "Import plist",
-      exportParams: "Export Params",
       load: "Load",
       chooseTexture: "Load Texture",
       exportPlist: "plist",

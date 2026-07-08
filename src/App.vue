@@ -12,6 +12,7 @@
         @pointer-down="beginDrag"
         @pointer-move="dragEmitter"
         @pointer-up="endDrag"
+        @nudge-emitter="nudgeEmitter"
       />
       <InspectorPanel
         ref="inspectorPanelRef"
@@ -49,13 +50,9 @@ import { createPlist, importedPlistState, parsePlistDict } from "./domain/plist"
 import type { ParticleFile, ParticleState } from "./domain/types";
 import { makeZip, sanitizeFileName } from "./domain/zip";
 
-type StageExpose = InstanceType<typeof StagePanel> & {
-  getCanvas: () => HTMLCanvasElement | null;
-};
+type StageExpose = InstanceType<typeof StagePanel>;
 
-type InspectorExpose = InstanceType<typeof InspectorPanel> & {
-  getTextureCanvas: () => HTMLCanvasElement | null;
-};
+type InspectorExpose = InstanceType<typeof InspectorPanel>;
 
 const state = reactive<ParticleState>(createInitialState());
 const particleCount = shallowRef("0 / 0");
@@ -158,6 +155,10 @@ function endDrag(): void {
   engine?.endDrag();
 }
 
+function nudgeEmitter(dx: number, dy: number): void {
+  engine?.nudgeEmitter(dx, dy);
+}
+
 function loadPreset(name: string): void {
   const preset = PRESETS[name as PresetName];
   if (!preset) return;
@@ -245,13 +246,19 @@ function fitCanvas(): void {
   engine?.fitCanvas();
 }
 
+// 这些字段只影响展示/导出命名，改动它们不应重置粒子模拟
+const NON_SIMULATION_FIELDS = new Set(["saveName", "textureName", "texturePath", "backgroundColor"]);
+
 watch(
-  state,
+  () => Object.keys(state)
+    .filter((key) => !NON_SIMULATION_FIELDS.has(key))
+    .map((key) => state[key as keyof ParticleState]),
   () => {
     resetParticles();
   },
-  { deep: true },
 );
+
+let resizeObserver: ResizeObserver | null = null;
 
 onMounted(async () => {
   await nextTick();
@@ -265,11 +272,18 @@ onMounted(async () => {
   updateTexturePreview();
   engine.fitCanvas();
   engine.start();
+  // window resize 覆盖 DPR 变化，ResizeObserver 覆盖窗口不变时的布局变化
   window.addEventListener("resize", fitCanvas);
+  if (typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(fitCanvas);
+    resizeObserver.observe(canvas);
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", fitCanvas);
+  resizeObserver?.disconnect();
+  resizeObserver = null;
   engine?.stop();
 });
 </script>

@@ -74,7 +74,7 @@ export function makeZip(files: ZipFile[]): Blob {
     const localView = new DataView(local.buffer);
     writeUint32(localView, 0, 0x04034b50);
     writeUint16(localView, 4, 20);
-    writeUint16(localView, 6, 0);
+    writeUint16(localView, 6, 0x0800); // bit 11: 文件名为 UTF-8，否则非 ASCII 名会按 CP437 解码成乱码
     writeUint16(localView, 8, 0);
     writeUint16(localView, 10, now.time);
     writeUint16(localView, 12, now.date);
@@ -91,7 +91,7 @@ export function makeZip(files: ZipFile[]): Blob {
     writeUint32(centralView, 0, 0x02014b50);
     writeUint16(centralView, 4, 20);
     writeUint16(centralView, 6, 20);
-    writeUint16(centralView, 8, 0);
+    writeUint16(centralView, 8, 0x0800);
     writeUint16(centralView, 10, 0);
     writeUint16(centralView, 12, now.time);
     writeUint16(centralView, 14, now.date);

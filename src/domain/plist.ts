@@ -117,7 +117,10 @@ export function parsePlistDict(xmlText: string): PlistDict {
     const key = children[index].textContent;
     const valueNode = children[index + 1];
     if (!key || !valueNode) continue;
-    result[key] = valueNode.textContent || "";
+    // <true/>/<false/> 是自闭合标签，textContent 为空，需按标签名转成数值
+    if (valueNode.tagName === "true") result[key] = "1";
+    else if (valueNode.tagName === "false") result[key] = "0";
+    else result[key] = valueNode.textContent || "";
   }
 
   return result;

@@ -22,7 +22,7 @@ const localeOptions = computed<SelectOption[]>(() =>
 </script>
 
 <template>
-  <div class="language-switcher" :aria-label="t('language.label')">
+  <div class="language-switcher">
     <NIcon class="language-switcher-icon" :component="Languages" />
     <NSelect
       v-model:value="selectedLocale"

@@ -125,6 +125,9 @@ select {
 }
 
 .status-bar #hint {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
   color: var(--muted);
 }
 
@@ -416,8 +419,8 @@ select {
   top: 8px;
   right: 8px;
   left: 8px;
-  color: rgba(238, 244, 255, 0.6);
-  font-size: 10px;
+  color: rgba(238, 244, 255, 0.78);
+  font-size: 11px;
   line-height: 1.2;
   text-align: center;
   pointer-events: none;
@@ -576,4 +579,14 @@ select {
   .export-bar label {
     text-align: left;
   }
+}
+
+/* 键盘焦点可见性：Naive UI 默认 focus 反馈较弱，统一补 focus-visible 外观 */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#preview:focus-visible {
+  outline-offset: -2px;
 }

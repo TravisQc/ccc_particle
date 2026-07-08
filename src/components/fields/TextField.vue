@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NInput } from "naive-ui";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     id: string;
     label: string;
@@ -13,11 +13,12 @@ withDefaults(
 );
 
 const model = defineModel<string>({ required: true });
+const inputProps = { id: props.id, "aria-label": props.label };
 </script>
 
 <template>
   <div class="field-row" :class="className">
     <label :for="id">{{ label }}</label>
-    <NInput :id="id" v-model:value="model" size="small" />
+    <NInput v-model:value="model" size="small" :input-props="inputProps" />
   </div>
 </template>

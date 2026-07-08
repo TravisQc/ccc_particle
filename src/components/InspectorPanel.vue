@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef } from "vue";
 import { NButton, NButtonGroup, NColorPicker, NIcon, NInput, NInputNumber, NSelect, NSwitch } from "naive-ui";
-import { Archive, Download, FileInput, FolderOpen, ImagePlus, Upload } from "@lucide/vue";
+import { Archive, FileInput, FolderOpen, ImagePlus, Upload } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 import InspectorSection from "./InspectorSection.vue";
 import LanguageSwitcher from "./LanguageSwitcher.vue";
@@ -86,8 +86,15 @@ function onDrop(event: DragEvent): void {
 }
 
 function setTextureName(value: string): void {
+  const previousName = props.state.textureName;
   props.state.textureName = value;
-  props.state.texturePath = value;
+  // 仅联动 texturePath 的文件名部分，保留用户自定义的目录前缀
+  const path = props.state.texturePath;
+  if (!path || path === previousName) {
+    props.state.texturePath = value;
+  } else if (path.endsWith(`/${previousName}`)) {
+    props.state.texturePath = `${path.slice(0, path.length - previousName.length)}${value}`;
+  }
 }
 
 defineExpose({
@@ -119,12 +126,6 @@ defineExpose({
             </template>
             {{ t("actions.importPlist") }}
           </NButton>
-          <NButton secondary type="default" :title="t('actions.exportParams')" @click="$emit('exportPlist')">
-            <template #icon>
-              <NIcon :component="Download" />
-            </template>
-            {{ t("actions.exportParams") }}
-          </NButton>
         </NButtonGroup>
       </div>
     </header>
@@ -138,13 +139,14 @@ defineExpose({
           :show-alpha="false"
           :show-preview="true"
           size="small"
+          :aria-label="t('fields.backgroundColor')"
           @update:value="updateColor($event, (value) => (state.backgroundColor = value))"
         />
       </div>
 
       <div class="field-row template-row">
         <label for="presetSelect">{{ t("fields.particlePreset") }}</label>
-        <NSelect id="presetSelect" v-model:value="selectedPreset" :options="presets" size="small" />
+        <NSelect id="presetSelect" v-model:value="selectedPreset" :options="presets" size="small" :aria-label="t('fields.particlePreset')" />
         <NButton id="loadPreset" secondary type="primary" size="small" @click="$emit('loadPreset', selectedPreset)">
           <template #icon>
             <NIcon :component="Upload" />
@@ -153,20 +155,20 @@ defineExpose({
         </NButton>
       </div>
 
-      <InspectorSection :title="t('inspector.sections.base')">
+      <InspectorSection name="base" :title="t('inspector.sections.base')">
         <div class="field-row split">
           <label for="duration">{{ t("fields.duration") }}</label>
           <NInputNumber
-            id="duration"
             class="number-input"
             :value="state.duration"
             :step="0.1"
             size="small"
             :show-button="false"
+            :input-props="{ id: 'duration', 'aria-label': t('fields.duration') }"
             @update:value="updateNumber($event, (value) => (state.duration = value))"
           />
           <label class="switch-label">
-            <NSwitch id="infinite" v-model:value="state.infinite" size="small" />
+            <NSwitch v-model:value="state.infinite" size="small" :aria-label="t('fields.infinite')" />
             <span>{{ t("fields.infinite") }}</span>
           </label>
         </div>
@@ -186,7 +188,7 @@ defineExpose({
         <SelectField id="positionType" :label="t('fields.positionType')" :options="positionTypeOptions" v-model="state.positionType" />
       </InspectorSection>
 
-      <InspectorSection :title="t('inspector.sections.particleMode')">
+      <InspectorSection name="particleMode" :title="t('inspector.sections.particleMode')">
         <SelectField id="emitterType" :label="t('fields.mode')" :options="emitterTypeOptions" v-model="state.emitterType" />
         <div data-mode="gravity">
           <AxisField :label="t('fields.gravity')" x-id="gravityX" y-id="gravityY" :step="0.01" v-model:x-value="state.gravityX" v-model:y-value="state.gravityY" />
@@ -222,12 +224,12 @@ defineExpose({
         </div>
       </InspectorSection>
 
-      <InspectorSection :title="t('inspector.sections.particleColor')">
+      <InspectorSection name="particleColor" :title="t('inspector.sections.particleColor')">
         <div class="color-grid">
           <label class="color-mode-row">
             <span>{{ t("fields.textureColor") }}</span>
             <span class="toggle-text">
-              <NSwitch id="useTextureColor" v-model:value="state.useTextureColor" size="small" />
+              <NSwitch v-model:value="state.useTextureColor" size="small" :aria-label="t('fields.useTextureColor')" />
               {{ t("fields.useTextureColor") }}
             </span>
           </label>
@@ -252,17 +254,17 @@ defineExpose({
         </div>
       </InspectorSection>
 
-      <InspectorSection :title="t('inspector.sections.particleTexture')">
+      <InspectorSection name="particleTexture" :title="t('inspector.sections.particleTexture')">
         <div class="texture-panel" @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
-          <div class="texture-preview-wrap" :aria-label="t('fields.texturePreview')">
-            <canvas id="texture-preview" ref="textureCanvasRef" width="96" height="96" />
+          <div class="texture-preview-wrap">
+            <canvas id="texture-preview" ref="textureCanvasRef" width="96" height="96" role="img" :aria-label="t('fields.texturePreview')" />
             <span id="texture-size">{{ textureSize }}</span>
             <span class="drop-hint">{{ t("fields.textureDropHint") }}</span>
           </div>
           <div class="texture-fields">
             <div class="field-row">
               <label for="texturePath">{{ t("fields.texturePath") }}</label>
-              <NInput id="texturePath" v-model:value="state.texturePath" size="small" />
+              <NInput v-model:value="state.texturePath" size="small" :input-props="{ id: 'texturePath', 'aria-label': t('fields.texturePath') }" />
               <NButton id="chooseTexture" type="primary" secondary circle size="small" :title="t('actions.chooseTexture')" :aria-label="t('actions.chooseTexture')" @click="$emit('chooseTexture')">
                 <template #icon>
                   <NIcon :component="FolderOpen" />
@@ -292,12 +294,12 @@ defineExpose({
         </div>
       </InspectorSection>
 
-      <InspectorSection :title="t('inspector.sections.particleRotation')">
+      <InspectorSection name="particleRotation" :title="t('inspector.sections.particleRotation')">
         <PairField id="rotationStart" variance-id="rotationStartVar" :label="t('fields.rotationStart')" :step="1" v-model="state.rotationStart" v-model:variance-value="state.rotationStartVar" />
         <PairField id="rotationEnd" variance-id="rotationEndVar" :label="t('fields.rotationEnd')" :step="1" v-model="state.rotationEnd" v-model:variance-value="state.rotationEndVar" />
       </InspectorSection>
 
-      <InspectorSection :title="t('inspector.sections.blendMode')">
+      <InspectorSection name="blendMode" :title="t('inspector.sections.blendMode')">
         <SelectField id="blendSrc" :label="t('fields.blendSrc')" :options="blendOptions" v-model="state.blendSrc" />
         <SelectField id="blendDst" :label="t('fields.blendDst')" :options="blendOptions" v-model="state.blendDst" />
       </InspectorSection>
@@ -305,7 +307,7 @@ defineExpose({
 
     <footer class="export-bar">
       <label for="saveName">{{ t("fields.saveName") }}</label>
-      <NInput id="saveName" v-model:value="state.saveName" size="small" />
+      <NInput v-model:value="state.saveName" size="small" :input-props="{ id: 'saveName', 'aria-label': t('fields.saveName') }" />
       <NButton secondary size="small" @click="$emit('exportPlist')">
         <template #icon>
           <NIcon :component="FileInput" />

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vue-tsc *)",
+      "Bash(python -c ' *)",
+      "Bash(python -)",
+      "Bash(npm run *)",
+      "Bash(git -C /d/Code/MyCode/vue/ccc_particle diff --stat)"
+    ]
+  }
+}

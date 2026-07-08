@@ -83,8 +83,10 @@ export async function textureFilesFromDrop(dataTransfer: DataTransfer): Promise<
   let files: ParticleFile[] = [];
 
   if (items.length && items.some((item) => (item as DataTransferItemWithEntry).webkitGetAsEntry)) {
-    for (const item of items) {
-      const entry = (item as DataTransferItemWithEntry).webkitGetAsEntry?.() || null;
+    // 必须在任何 await 之前同步取出所有 entry：drop 事件让出主线程后
+    // Chromium 会使 DataTransferItem 失效，webkitGetAsEntry() 返回 null。
+    const entries = items.map((item) => (item as DataTransferItemWithEntry).webkitGetAsEntry?.() || null);
+    for (const entry of entries) {
       const entryFiles = await readDataTransferEntry(entry);
       files.push(...entryFiles);
     }

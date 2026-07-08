@@ -24,12 +24,14 @@ function updateValue(value: string | null): void {
 <template>
   <label class="color-field" v-bind="rgbControl ? { 'data-rgb-control': '' } : {}">
     <span>{{ label }}</span>
+    <!-- NColorPicker 触发器是 div，包裹式 label 不建立无障碍关联，需显式 aria-label -->
     <NColorPicker
       :value="model"
       :modes="colorModes"
       :show-alpha="false"
       :show-preview="true"
       size="small"
+      :aria-label="label"
       @update:value="updateValue"
     />
   </label>

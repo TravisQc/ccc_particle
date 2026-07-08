@@ -56,6 +56,7 @@ export class ParticleEngine {
   private elapsed = 0;
   private paused = false;
   private emitter: Point = { x: 0, y: 0 };
+  private emitterPlaced = false;
   private lastEmitPosition: Point = { x: 0, y: 0 };
   private dragging = false;
   private frameId = 0;
@@ -93,7 +94,13 @@ export class ParticleEngine {
     this.canvas.width = Math.max(1, Math.floor(rect.width * dpr));
     this.canvas.height = Math.max(1, Math.floor(rect.height * dpr));
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (!this.emitter.x && !this.emitter.y) this.centerEmitter();
+    if (!this.emitterPlaced) {
+      this.centerEmitter();
+    } else {
+      // 画布缩小后把发射器留在可视区域内
+      this.emitter.x = clamp(this.emitter.x, 0, rect.width);
+      this.emitter.y = clamp(this.emitter.y, 0, rect.height);
+    }
   }
 
   centerEmitter(): void {
@@ -102,6 +109,14 @@ export class ParticleEngine {
     this.emitter.y = rect.height * 0.5;
     this.lastEmitPosition.x = this.emitter.x;
     this.lastEmitPosition.y = this.emitter.y;
+    this.emitterPlaced = true;
+  }
+
+  nudgeEmitter(dx: number, dy: number): void {
+    const rect = this.canvas.getBoundingClientRect();
+    this.emitter.x = clamp(this.emitter.x + dx, 0, rect.width);
+    this.emitter.y = clamp(this.emitter.y + dy, 0, rect.height);
+    this.emitterPlaced = true;
   }
 
   resetParticles(): void {
@@ -163,8 +178,13 @@ export class ParticleEngine {
   drawTexturePreview(canvas: HTMLCanvasElement): string {
     const textureCtx = context2d(canvas);
     textureCtx.clearRect(0, 0, canvas.width, canvas.height);
-    textureCtx.drawImage(this.textureImage, 0, 0, canvas.width, canvas.height);
-    return `${this.textureImage.naturalWidth || 64} x ${this.textureImage.naturalHeight || 64}`;
+    const sourceW = this.textureImage.naturalWidth || 64;
+    const sourceH = this.textureImage.naturalHeight || 64;
+    const scale = Math.min(canvas.width / sourceW, canvas.height / sourceH);
+    const drawW = sourceW * scale;
+    const drawH = sourceH * scale;
+    textureCtx.drawImage(this.textureImage, (canvas.width - drawW) * 0.5, (canvas.height - drawH) * 0.5, drawW, drawH);
+    return `${sourceW} x ${sourceH}`;
   }
 
   texturePngBlob(): Promise<Blob | null> {
@@ -175,6 +195,7 @@ export class ParticleEngine {
     const rect = this.canvas.getBoundingClientRect();
     this.emitter.x = event.clientX - rect.left;
     this.emitter.y = event.clientY - rect.top;
+    this.emitterPlaced = true;
   }
 
   private clearTintCache(): void {
@@ -223,8 +244,9 @@ export class ParticleEngine {
 
   private createParticle(origin: Point = this.emitter): Particle {
     const life = Math.max(0.03, randomVariance(this.state.life, this.state.lifeVar));
-    const offsetX = (Math.random() - 0.5) * Number(this.state.sourceW);
-    const offsetY = (Math.random() - 0.5) * Number(this.state.sourceH);
+    // Cocos 的 sourcePositionVariance 语义是 pos ± variance（全幅 2×variance）
+    const offsetX = (Math.random() * 2 - 1) * this.state.sourceW;
+    const offsetY = (Math.random() * 2 - 1) * this.state.sourceH;
     const angle = (randomVariance(this.state.angle, this.state.angleVar) * Math.PI) / 180;
     const speed = randomVariance(this.state.speed, this.state.speedVar);
     const startSize = Math.max(0.1, randomVariance(this.state.startSize, this.state.startSizeVar));
@@ -232,10 +254,10 @@ export class ParticleEngine {
     const rotationStart = randomVariance(this.state.rotationStart, this.state.rotationStartVar);
     const rotationEnd = randomVariance(this.state.rotationEnd, this.state.rotationEndVar);
     const startColor = this.state.useTextureColor
-      ? { r: 255, g: 255, b: 255, a: clamp(Number(this.state.startAlpha), 0, 1) }
+      ? { r: 255, g: 255, b: 255, a: clamp(this.state.startAlpha, 0, 1) }
       : randomColor(this.state.startColor, this.state.startColorVar, this.state.startAlpha);
     const endColor = this.state.useTextureColor
-      ? { r: 255, g: 255, b: 255, a: clamp(Number(this.state.endAlpha), 0, 1) }
+      ? { r: 255, g: 255, b: 255, a: clamp(this.state.endAlpha, 0, 1) }
       : randomColor(this.state.endColor, this.state.endColorVar, this.state.endAlpha);
 
     const particle: Particle = {
@@ -265,7 +287,8 @@ export class ParticleEngine {
       particle.radiusAngle = angle;
       particle.degPerSec = (randomVariance(this.state.rotatePerSecond, this.state.rotatePerSecondVar) * Math.PI) / 180;
       particle.x = particle.centerX + Math.cos(angle) * startRadius;
-      particle.y = particle.centerY + Math.sin(angle) * startRadius;
+      // canvas 的 y 轴向下，与重力模式的 vy = -sin 保持同一坐标翻转
+      particle.y = particle.centerY - Math.sin(angle) * startRadius;
     }
 
     return particle;
@@ -279,7 +302,7 @@ export class ParticleEngine {
       particle.radius = Math.max(0, (particle.radius || 0) + (particle.deltaRadius || 0) * dt);
       particle.radiusAngle = (particle.radiusAngle || 0) + (particle.degPerSec || 0) * dt;
       particle.x = (particle.centerX || 0) + Math.cos(particle.radiusAngle) * particle.radius;
-      particle.y = (particle.centerY || 0) + Math.sin(particle.radiusAngle) * particle.radius;
+      particle.y = (particle.centerY || 0) - Math.sin(particle.radiusAngle) * particle.radius;
       return true;
     }
 
@@ -291,11 +314,11 @@ export class ParticleEngine {
     const tangentialX = -radialY;
     const tangentialY = radialX;
     const ax =
-      Number(this.state.gravityX) +
+      this.state.gravityX +
       radialX * particle.radialAccel +
       tangentialX * particle.tangentialAccel;
     const ay =
-      -Number(this.state.gravityY) +
+      -this.state.gravityY +
       radialY * particle.radialAccel +
       tangentialY * particle.tangentialAccel;
 
@@ -307,8 +330,8 @@ export class ParticleEngine {
   }
 
   private emit(dt: number): void {
-    if (!this.state.infinite && this.elapsed > Number(this.state.duration)) return;
-    const emissionRate = Number(this.state.emissionRate);
+    if (!this.state.infinite && this.elapsed > this.state.duration) return;
+    const emissionRate = this.state.emissionRate;
     const rate = Number.isFinite(emissionRate) ? Math.max(0, emissionRate) : 0;
     this.emitCarry += rate * dt;
     const requestedCount = Math.floor(this.emitCarry);
@@ -316,7 +339,7 @@ export class ParticleEngine {
 
     const dx = this.emitter.x - this.lastEmitPosition.x;
     const dy = this.emitter.y - this.lastEmitPosition.y;
-    const maxParticles = Number(this.state.maxParticles);
+    const maxParticles = this.state.maxParticles;
     const slots = Math.max(0, (Number.isFinite(maxParticles) ? Math.floor(maxParticles) : 0) - this.particles.length);
     const count = Math.min(requestedCount, slots);
 

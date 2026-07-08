@@ -16,6 +16,7 @@ const emit = defineEmits<{
   pointerDown: [event: PointerEvent];
   pointerMove: [event: PointerEvent];
   pointerUp: [event: PointerEvent];
+  nudgeEmitter: [dx: number, dy: number];
 }>();
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>("canvasRef");
@@ -34,6 +35,21 @@ function onPointerUp(event: PointerEvent): void {
     canvas.releasePointerCapture(event.pointerId);
   }
   emit("pointerUp", event);
+}
+
+function onKeyDown(event: KeyboardEvent): void {
+  const step = event.shiftKey ? 10 : 1;
+  const moves: Record<string, [number, number]> = {
+    ArrowLeft: [-step, 0],
+    ArrowRight: [step, 0],
+    ArrowUp: [0, -step],
+    ArrowDown: [0, step],
+  };
+  const move = moves[event.key];
+  if (move) {
+    event.preventDefault();
+    emit("nudgeEmitter", move[0], move[1]);
+  }
 }
 
 defineExpose({
@@ -103,15 +119,19 @@ defineExpose({
       ref="canvasRef"
       width="1200"
       height="900"
+      tabindex="0"
+      role="application"
+      :aria-label="t('stage.aria')"
       @pointerdown="onPointerDown"
       @pointermove="$emit('pointerMove', $event)"
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
+      @keydown="onKeyDown"
     />
 
     <div class="status-bar">
       <span>{{ t("stage.particles") }} <strong>{{ particleCount }}</strong></span>
-      <span id="hint">{{ t("stage.hint") }}</span>
+      <span id="hint" class="status-hint">{{ t("stage.hint") }}</span>
     </div>
   </section>
 </template>

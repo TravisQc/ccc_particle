@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string">
 import { NSelect } from "naive-ui";
 import type { SelectOption as NaiveSelectOption } from "naive-ui";
 
@@ -11,7 +11,7 @@ withDefaults(
   defineProps<{
     id: string;
     label: string;
-    options: SelectOption[];
+    options: Array<{ value: T; label: string }>;
     className?: string;
   }>(),
   {
@@ -19,12 +19,17 @@ withDefaults(
   },
 );
 
-const model = defineModel<string>({ required: true });
+const model = defineModel<T>({ required: true });
+
+function updateValue(value: string | number | null): void {
+  // options 已约束为 T，NSelect 只会回传 options 中的 value
+  if (typeof value === "string") model.value = value as T;
+}
 </script>
 
 <template>
   <div class="field-row" :class="className">
     <label :for="id">{{ label }}</label>
-    <NSelect :id="id" v-model:value="model" :options="options" size="small" />
+    <NSelect :value="model" :options="options" size="small" :aria-label="label" :input-props="{ id }" @update:value="updateValue" />
   </div>
 </template>

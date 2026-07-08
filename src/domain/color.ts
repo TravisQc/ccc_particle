@@ -47,9 +47,9 @@ export function colorToRgba(color: RgbaColor): string {
 
 export function quantizeColor(color: RgbaColor): RgbaColor {
   return {
-    r: Math.round(color.r / 16) * 16,
-    g: Math.round(color.g / 16) * 16,
-    b: Math.round(color.b / 16) * 16,
+    r: Math.min(255, Math.round(color.r / 16) * 16),
+    g: Math.min(255, Math.round(color.g / 16) * 16),
+    b: Math.min(255, Math.round(color.b / 16) * 16),
     a: Math.round(color.a * 24) / 24,
   };
 }
