@@ -19,6 +19,10 @@ export const messages = {
     },
     actions: {
       importPlist: "导入 plist",
+      importBackground: "导入参考背景（原始像素 1:1）",
+      hideBackground: "隐藏参考背景",
+      showBackground: "显示参考背景",
+      clearBackground: "清除参考背景",
       load: "载入",
       chooseTexture: "载入纹理",
       exportPlist: "plist",
@@ -33,6 +37,8 @@ export const messages = {
       pausePreview: "暂停预览",
       resumePlayback: "继续播放",
       particles: "粒子数",
+      backgroundSummary: "参考背景 {width} × {height} · 1:1",
+      backgroundHidden: "（已隐藏）",
       hint: "CocosCreator 粒子 · 实时预览",
     },
     inspector: {
@@ -120,6 +126,10 @@ export const messages = {
     },
     actions: {
       importPlist: "Import plist",
+      importBackground: "Import reference background (1:1 pixels)",
+      hideBackground: "Hide reference background",
+      showBackground: "Show reference background",
+      clearBackground: "Clear reference background",
       load: "Load",
       chooseTexture: "Load Texture",
       exportPlist: "plist",
@@ -134,6 +144,8 @@ export const messages = {
       pausePreview: "Pause preview",
       resumePlayback: "Resume playback",
       particles: "Particles",
+      backgroundSummary: "Reference {width} × {height} · 1:1",
+      backgroundHidden: "(hidden)",
       hint: "Cocos Creator particles - live preview",
     },
     inspector: {

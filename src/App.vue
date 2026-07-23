@@ -4,10 +4,15 @@
     <main class="app-shell">
       <StagePanel
         ref="stagePanelRef"
+        :background-info="backgroundInfo"
+        :background-visible="backgroundVisible"
         :particle-count="particleCount"
         :paused="paused"
+        @choose-background="chooseBackground"
+        @clear-background="clearBackground"
         @center="centerEmitter"
         @reset="resetParticles"
+        @toggle-background="toggleBackground"
         @toggle-pause="togglePause"
         @pointer-down="beginDrag"
         @pointer-move="dragEmitter"
@@ -30,6 +35,7 @@
       />
     </main>
 
+    <input ref="backgroundInputRef" type="file" accept="image/png,image/jpeg,image/webp" hidden @change="onBackgroundInput" />
     <input ref="textureInputRef" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden @change="onTextureInput" />
     <input ref="plistInputRef" type="file" accept=".plist,text/xml,application/xml" hidden @change="onPlistInput" />
   </NConfigProvider>
@@ -44,7 +50,7 @@ import InspectorPanel from "./components/InspectorPanel.vue";
 import StagePanel from "./components/StagePanel.vue";
 import { downloadBlob } from "./domain/download";
 import { firstImageFile, textureFilesFromDrop } from "./domain/files";
-import { ParticleEngine } from "./domain/particle-engine";
+import { ParticleEngine, type BackgroundImageInfo } from "./domain/particle-engine";
 import { BLEND_MAP, PRESET_NAMES, PRESETS, createInitialState, type PresetName } from "./domain/presets";
 import { createPlist, importedPlistState, parsePlistDict } from "./domain/plist";
 import type { ParticleFile, ParticleState } from "./domain/types";
@@ -58,10 +64,13 @@ const state = reactive<ParticleState>(createInitialState());
 const particleCount = shallowRef("0 / 0");
 const textureSize = shallowRef("64 x 64");
 const paused = shallowRef(false);
+const backgroundInfo = shallowRef<BackgroundImageInfo | null>(null);
+const backgroundVisible = shallowRef(true);
 const { locale, t } = useI18n();
 
 const stagePanelRef = useTemplateRef<StageExpose>("stagePanelRef");
 const inspectorPanelRef = useTemplateRef<InspectorExpose>("inspectorPanelRef");
+const backgroundInputRef = useTemplateRef<HTMLInputElement>("backgroundInputRef");
 const textureInputRef = useTemplateRef<HTMLInputElement>("textureInputRef");
 const plistInputRef = useTemplateRef<HTMLInputElement>("plistInputRef");
 
@@ -170,6 +179,22 @@ function chooseTexture(): void {
   textureInputRef.value?.click();
 }
 
+function chooseBackground(): void {
+  backgroundInputRef.value?.click();
+}
+
+function toggleBackground(): void {
+  if (!backgroundInfo.value) return;
+  backgroundVisible.value = !backgroundVisible.value;
+  engine?.setBackgroundVisible(backgroundVisible.value);
+}
+
+function clearBackground(): void {
+  backgroundInfo.value = null;
+  backgroundVisible.value = true;
+  engine?.clearBackground();
+}
+
 function choosePlist(): void {
   plistInputRef.value?.click();
 }
@@ -192,6 +217,16 @@ async function loadDroppedTextures(dataTransfer: DataTransfer): Promise<void> {
 function onTextureInput(event: Event): void {
   const input = event.target as HTMLInputElement;
   if (input.files) void loadTextureFiles(input.files);
+  input.value = "";
+}
+
+async function onBackgroundInput(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement;
+  const file = input.files ? firstImageFile(input.files) : undefined;
+  if (file && engine) {
+    backgroundInfo.value = await engine.loadBackgroundFile(file);
+    backgroundVisible.value = true;
+  }
   input.value = "";
 }
 

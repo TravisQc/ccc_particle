@@ -101,6 +101,13 @@ select {
   margin: 0;
 }
 
+.tool-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .status-bar {
   position: absolute;
   right: 0;
@@ -122,6 +129,18 @@ select {
 .status-bar strong {
   color: var(--accent);
   font-weight: 700;
+}
+
+.background-status {
+  overflow: hidden;
+  max-width: 250px;
+  color: var(--focus);
+  text-overflow: ellipsis;
+}
+
+.background-status em {
+  color: var(--muted);
+  font-style: normal;
 }
 
 .status-bar #hint {

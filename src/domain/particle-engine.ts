@@ -42,12 +42,20 @@ export interface TextureUpdate {
   texturePath: string;
 }
 
+export interface BackgroundImageInfo {
+  name: string;
+  width: number;
+  height: number;
+}
+
 export class ParticleEngine {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly textureSourceCanvas = document.createElement("canvas");
   private readonly tintBaseCanvas = document.createElement("canvas");
   private readonly tintBaseCtx: CanvasRenderingContext2D;
   private textureImage = new Image();
+  private backgroundImage: HTMLImageElement | null = null;
+  private backgroundVisible = true;
   private tintedTextureCache = new Map<string, HTMLCanvasElement>();
   private textureRevision = 0;
   private particles: Particle[] = [];
@@ -173,6 +181,27 @@ export class ParticleEngine {
       textureName: file.name.replace(/\.(jpe?g|webp)$/i, ".png"),
       texturePath: imageFilePath(file).replace(/\.(jpe?g|webp)$/i, ".png"),
     };
+  }
+
+  async loadBackgroundFile(file: File): Promise<BackgroundImageInfo> {
+    const image = await loadImage(await readFileAsDataUrl(file));
+    this.backgroundImage = image;
+    this.backgroundVisible = true;
+
+    return {
+      name: file.name,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+    };
+  }
+
+  setBackgroundVisible(visible: boolean): void {
+    this.backgroundVisible = visible;
+  }
+
+  clearBackground(): void {
+    this.backgroundImage = null;
+    this.backgroundVisible = true;
   }
 
   drawTexturePreview(canvas: HTMLCanvasElement): string {
@@ -399,6 +428,16 @@ export class ParticleEngine {
     this.particles.length = writeIndex;
   }
 
+  private renderBackground(canvasWidth: number, canvasHeight: number): void {
+    if (!this.backgroundImage || !this.backgroundVisible) return;
+    const imageWidth = this.backgroundImage.naturalWidth;
+    const imageHeight = this.backgroundImage.naturalHeight;
+    const x = Math.round((canvasWidth - imageWidth) * 0.5);
+    const y = Math.round((canvasHeight - imageHeight) * 0.5);
+    // 粒子尺寸使用 CSS 像素；背景同样按原始像素 1:1 绘制，便于准确对照。
+    this.ctx.drawImage(this.backgroundImage, x, y, imageWidth, imageHeight);
+  }
+
   private readonly frame = (now: number): void => {
     if (!this.running) return;
 
@@ -409,6 +448,7 @@ export class ParticleEngine {
     this.ctx.clearRect(0, 0, rect.width, rect.height);
     this.ctx.fillStyle = this.state.backgroundColor;
     this.ctx.fillRect(0, 0, rect.width, rect.height);
+    this.renderBackground(rect.width, rect.height);
 
     if (!this.paused) {
       this.elapsed += dt;
