@@ -73,6 +73,12 @@ select {
   height: 100%;
   cursor: crosshair;
   background: #000;
+  touch-action: none;
+  user-select: none;
+}
+
+#preview.is-panning {
+  cursor: grabbing;
 }
 
 .tool-strip {

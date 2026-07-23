@@ -31,7 +31,7 @@ export const messages = {
     },
     stage: {
       aria: "CocosCreator 粒子实时预览",
-      dragCanvas: "拖动画布",
+      dragCanvas: "按住鼠标中键拖动背景和发射器",
       centerEmitter: "居中发射器",
       resetParticles: "重置粒子",
       pausePreview: "暂停预览",
@@ -39,7 +39,7 @@ export const messages = {
       particles: "粒子数",
       backgroundSummary: "参考背景 {width} × {height} · 1:1",
       backgroundHidden: "（已隐藏）",
-      hint: "CocosCreator 粒子 · 实时预览",
+      hint: "左键移动发射器 · 中键同步拖动背景和发射器",
     },
     inspector: {
       aria: "CocosCreator 粒子参数调整",
@@ -138,7 +138,7 @@ export const messages = {
     },
     stage: {
       aria: "Cocos Creator particle live preview",
-      dragCanvas: "Drag canvas",
+      dragCanvas: "Middle-drag the background and emitter",
       centerEmitter: "Center emitter",
       resetParticles: "Reset particles",
       pausePreview: "Pause preview",
@@ -146,7 +146,7 @@ export const messages = {
       particles: "Particles",
       backgroundSummary: "Reference {width} × {height} · 1:1",
       backgroundHidden: "(hidden)",
-      hint: "Cocos Creator particles - live preview",
+      hint: "Left-drag emitter · Middle-drag background and emitter",
     },
     inspector: {
       aria: "Cocos Creator particle parameters",

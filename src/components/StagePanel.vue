@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, shallowRef, useTemplateRef } from "vue";
 import { NButton, NIcon, NTooltip } from "naive-ui";
 import { Eye, EyeOff, Focus, ImagePlus, Move, Pause, Play, RotateCcw, Trash2 } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
@@ -25,6 +25,7 @@ const emit = defineEmits<{
 }>();
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>("canvasRef");
+const isPanning = shallowRef(false);
 const { t } = useI18n();
 const pauseIcon = computed(() => (props.paused ? Play : Pause));
 const pauseLabel = computed(() => (props.paused ? t("stage.resumePlayback") : t("stage.pausePreview")));
@@ -39,7 +40,13 @@ const backgroundSummary = computed(() => {
 });
 
 function onPointerDown(event: PointerEvent): void {
-  canvasRef.value?.setPointerCapture(event.pointerId);
+  if (event.button !== 0 && event.button !== 1) return;
+
+  event.preventDefault();
+  const canvas = canvasRef.value;
+  canvas?.focus({ preventScroll: true });
+  canvas?.setPointerCapture(event.pointerId);
+  isPanning.value = event.button === 1;
   emit("pointerDown", event);
 }
 
@@ -48,6 +55,7 @@ function onPointerUp(event: PointerEvent): void {
   if (canvas?.hasPointerCapture(event.pointerId)) {
     canvas.releasePointerCapture(event.pointerId);
   }
+  isPanning.value = false;
   emit("pointerUp", event);
 }
 
@@ -193,6 +201,7 @@ defineExpose({
     <canvas
       id="preview"
       ref="canvasRef"
+      :class="{ 'is-panning': isPanning }"
       width="1200"
       height="900"
       tabindex="0"
@@ -202,6 +211,7 @@ defineExpose({
       @pointermove="$emit('pointerMove', $event)"
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
+      @auxclick.prevent
       @keydown="onKeyDown"
     />
 

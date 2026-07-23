@@ -13,6 +13,8 @@ import type { Particle, ParticleFile, ParticleState, Point, RgbaColor } from "./
 const TINT_CACHE_LIMIT = 768;
 const TINT_TEXTURE_MAX_SIZE = 96;
 
+type DragMode = "emitter" | "canvas";
+
 function context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context is not available.");
@@ -66,7 +68,11 @@ export class ParticleEngine {
   private emitter: Point = { x: 0, y: 0 };
   private emitterPlaced = false;
   private lastEmitPosition: Point = { x: 0, y: 0 };
-  private dragging = false;
+  private backgroundOffset: Point = { x: 0, y: 0 };
+  private dragMode: DragMode | null = null;
+  private dragStartPointer: Point = { x: 0, y: 0 };
+  private dragStartEmitter: Point = { x: 0, y: 0 };
+  private dragStartBackgroundOffset: Point = { x: 0, y: 0 };
   private frameId = 0;
   private running = false;
 
@@ -136,18 +142,47 @@ export class ParticleEngine {
   }
 
   beginDrag(event: PointerEvent): void {
-    this.dragging = true;
-    this.moveEmitter(event);
+    if (event.button === 1) {
+      this.dragMode = "canvas";
+      this.dragStartPointer.x = event.clientX;
+      this.dragStartPointer.y = event.clientY;
+      this.dragStartEmitter.x = this.emitter.x;
+      this.dragStartEmitter.y = this.emitter.y;
+      this.dragStartBackgroundOffset.x = this.backgroundOffset.x;
+      this.dragStartBackgroundOffset.y = this.backgroundOffset.y;
+    } else if (event.button === 0) {
+      this.dragMode = "emitter";
+      this.moveEmitter(event);
+    } else {
+      return;
+    }
+
     this.lastEmitPosition.x = this.emitter.x;
     this.lastEmitPosition.y = this.emitter.y;
   }
 
   drag(event: PointerEvent): void {
-    if (this.dragging) this.moveEmitter(event);
+    if (this.dragMode === "emitter") {
+      this.moveEmitter(event);
+    } else if (this.dragMode === "canvas") {
+      const dx = event.clientX - this.dragStartPointer.x;
+      const dy = event.clientY - this.dragStartPointer.y;
+      this.emitter.x = this.dragStartEmitter.x + dx;
+      this.emitter.y = this.dragStartEmitter.y + dy;
+      this.backgroundOffset.x = this.dragStartBackgroundOffset.x + dx;
+      this.backgroundOffset.y = this.dragStartBackgroundOffset.y + dy;
+      this.emitterPlaced = true;
+    }
+
+    // 暂停期间不会执行 emit；同步位置可避免恢复后沿整段拖拽路径补发粒子。
+    if (this.dragMode && this.paused) {
+      this.lastEmitPosition.x = this.emitter.x;
+      this.lastEmitPosition.y = this.emitter.y;
+    }
   }
 
   endDrag(): void {
-    this.dragging = false;
+    this.dragMode = null;
   }
 
   async makeDefaultTexture(): Promise<void> {
@@ -187,6 +222,8 @@ export class ParticleEngine {
     const image = await loadImage(await readFileAsDataUrl(file));
     this.backgroundImage = image;
     this.backgroundVisible = true;
+    this.backgroundOffset.x = 0;
+    this.backgroundOffset.y = 0;
 
     return {
       name: file.name,
@@ -202,6 +239,8 @@ export class ParticleEngine {
   clearBackground(): void {
     this.backgroundImage = null;
     this.backgroundVisible = true;
+    this.backgroundOffset.x = 0;
+    this.backgroundOffset.y = 0;
   }
 
   drawTexturePreview(canvas: HTMLCanvasElement): string {
@@ -432,8 +471,8 @@ export class ParticleEngine {
     if (!this.backgroundImage || !this.backgroundVisible) return;
     const imageWidth = this.backgroundImage.naturalWidth;
     const imageHeight = this.backgroundImage.naturalHeight;
-    const x = Math.round((canvasWidth - imageWidth) * 0.5);
-    const y = Math.round((canvasHeight - imageHeight) * 0.5);
+    const x = (canvasWidth - imageWidth) * 0.5 + this.backgroundOffset.x;
+    const y = (canvasHeight - imageHeight) * 0.5 + this.backgroundOffset.y;
     // 粒子尺寸使用 CSS 像素；背景同样按原始像素 1:1 绘制，便于准确对照。
     this.ctx.drawImage(this.backgroundImage, x, y, imageWidth, imageHeight);
   }
